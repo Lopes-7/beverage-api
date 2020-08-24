@@ -56,6 +56,44 @@ routes.get('/beverages/:id', (req, res) => {
     });
 });
 
+// post beverage
+routes.post('/beverages', (req, res) => {
+    // log request
+    console.log('received request: ', req.method, req.url);
+
+    // bad payload: throw error response
+    if (!req.body ||
+        !req.body.price ||
+        !req.body.net_weight ||
+        !req.body.name ||
+        !req.body.vendor ||
+        isNaN(Number(req.body.price)) === true ||
+        isNaN(Number(req.body.net_weight)) === true) {
+            console.log('result: bad payload');
+            return res.status(400).send({message: 'bad payload'});
+        }
+    
+    // get data
+    const price = Number(req.body.price);
+    const net_weight = Number(req.body.net_weight);
+    const price_per_liter = price/(net_weight / 1000);
+
+    // instatiate new beverage
+    const beverage = new Beverage({
+        name: req.body.name,
+        price,
+        net_weight,
+        price_per_liter,
+        vendor: req.body.vendor,
+    });
+
+    // save beverage to db
+    beverage.save();
+
+    // return response created
+    return res.status(201).send(beverage);
+});
+
 
 /**
  * EXPORTS
