@@ -94,6 +94,26 @@ routes.post('/beverages', (req, res) => {
     return res.status(201).send(beverage);
 });
 
+// delete beverage by id
+routes.delete('/beverages/:id', (req, res) => {
+    // log request
+    console.log('received request: ', req.method, req.url);
+
+    // get parameter id
+    const id = req.params.id;
+
+    // get document with provided id
+    Beverage.deleteOne({_id: id})
+    .then(result => {
+        console.log('result: ', result);
+        return res.status(200).send(result);
+    })
+    .catch(error => {
+        console.log('Could not find document');
+        return res.status(404).send({message: 'could not get db documents'})
+    });
+});
+
 
 /**
  * EXPORTS
