@@ -32,6 +32,30 @@ routes.get('/beverages', (req, res) => {
     });
 });
 
+// get beverage by id
+routes.get('/beverages/:id', (req, res) => {
+    // log request
+    console.log('received request: ', req.method, req.url);
+
+    // get parameter id
+    const id = req.params.id;
+
+    // get document with provided id
+    Beverage.findOne({_id: id})
+    .then(data => {
+        if (data !== null) {
+            console.log('response: 200 Found document: ', data);
+            return res.status(200).send(data);
+        }
+        console.log('Could not find document');
+        return res.status(404).send({message: 'could not get document'})
+    })
+    .catch(() => {
+        console.log('Could not find document');
+        return res.status(404).send({message: 'could not get document'})
+    });
+});
+
 
 /**
  * EXPORTS
