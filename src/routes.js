@@ -94,6 +94,50 @@ routes.post('/beverages', (req, res) => {
     return res.status(201).send(beverage);
 });
 
+// put beverage by id
+routes.put('/beverages/:id', async (req, res) => {
+    // log request
+    console.log('received request: ', req.method, req.url);
+
+    // bad payload: throw error response
+    if (!req.body ||
+        !req.body.price ||
+        !req.body.net_weight ||
+        !req.body.name ||
+        !req.body.vendor ||
+        isNaN(Number(req.body.price)) === true ||
+        isNaN(Number(req.body.net_weight)) === true) {
+            console.log('result: bad payload');
+            return res.status(400).send({message: 'bad payload'});
+        }
+    
+    // get data
+    const price = Number(req.body.price);
+    const net_weight = Number(req.body.net_weight);
+    const price_per_liter = price/(net_weight / 1000);
+
+    // get parameter id
+    const id = req.params.id;
+
+    // update document
+    await Beverage.findByIdAndUpdate({_id: id},{
+        name: req.body.name,
+        price,
+        net_weight,
+        price_per_liter,
+        vendor: req.body.vendor
+    })
+    .then(result => {
+        console.log('result: ', result);
+        return res.status(200).send(result);
+    })
+    .catch(error => {
+        console.log(error);
+        console.log('Could not find document');
+        return res.status(404).send({message: 'could not get documents'})
+    });
+});
+
 // delete beverage by id
 routes.delete('/beverages/:id', (req, res) => {
     // log request
