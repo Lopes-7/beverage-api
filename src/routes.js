@@ -4,6 +4,7 @@
 const routes = require('express').Router();
 const mongoose = require('mongoose');
 const Beverage = require('./models/beverage');
+const getUrlParameters = require('./utils');
 
 
 /**
@@ -20,8 +21,11 @@ routes.get('/beverages', (req, res) => {
     // log request
     console.log('received request: ', req.method, req.url);
 
+    // get url parameters
+    const params = getUrlParameters(req.url);
+    
     // list all documents in database
-    Beverage.find()
+    Beverage.find(params)
     .then(data => {
         console.log('response: 200 Found documents: ', data.length);
         return res.status(200).send(data);
