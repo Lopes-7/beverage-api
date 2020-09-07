@@ -3,7 +3,6 @@
  */
 const express = require('express');
 
-
 /**
  * CODE
  */
@@ -13,7 +12,7 @@ class AppController {
     constructor() {
         this.express = express();
         this.middlewares();
-        this.routes(); 
+        this.routes();
     }
 
     middlewares() {
@@ -24,7 +23,6 @@ class AppController {
         this.express.use(require('./routes'));
     }
 }
-
 
 /**
  * EXPORTS

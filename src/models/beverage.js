@@ -3,7 +3,6 @@
  */
 const mongoose = require('mongoose');
 
-
 /**
  * CODE
  */
@@ -15,9 +14,8 @@ const beverageSchema = mongoose.Schema({
     net_weight: {type: Number, required: true}, // in ml
     price: {type: Number, required: true}, // in R$
     price_per_liter: {type: Number, required: true}, // R$/l
-    vendor: {type: String, required: true}
+    vendor: {type: String, required: true},
 });
-
 
 /**
  * EXPORTS

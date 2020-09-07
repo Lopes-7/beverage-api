@@ -3,7 +3,6 @@
  */
 const app = require('./app.js');
 
-
 /**
  * CODE
  */
