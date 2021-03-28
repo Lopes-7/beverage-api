@@ -2,19 +2,12 @@
  * IMPORTS
  */
 const routes = require('express').Router();
-const mongoose = require('mongoose');
-const Beverage = require('./models/beverage');
-const getUrlParameters = require('./utils');
+const Beverage = require('../models/beverage');
+const getUrlParameters = require('../utils');
 
 /**
  * CODE
  */
-
-// connect to local database
-mongoose
-    .connect('mongodb://localhost:27017/test', {useNewUrlParser: true})
-    .then(() => console.log('Connected to database'))
-    .catch(() => console.log('Could not connect to database'));
 
 // get list of beverages
 routes.get('/beverages', (req, res) => {
@@ -34,7 +27,7 @@ routes.get('/beverages', (req, res) => {
             console.log('Could not find document', error);
             return res
                 .status(404)
-                .send({message: 'Could not get db documents'});
+                .send({ message: 'Could not get db documents' });
         });
 });
 
@@ -47,18 +40,18 @@ routes.get('/beverages/:id', (req, res) => {
     const id = req.params.id;
 
     // get document with provided id
-    Beverage.findOne({_id: id})
+    Beverage.findOne({ _id: id })
         .then((data) => {
             if (data !== null) {
                 console.log('response: 200 Found document: ', data);
                 return res.status(200).send(data);
             }
             console.log('Could not find document');
-            return res.status(404).send({message: 'could not get document'});
+            return res.status(404).send({ message: 'could not get document' });
         })
         .catch(() => {
             console.log('Could not find document');
-            return res.status(404).send({message: 'could not get document'});
+            return res.status(404).send({ message: 'could not get document' });
         });
 });
 
@@ -78,7 +71,7 @@ routes.post('/beverages', (req, res) => {
         isNaN(Number(req.body.net_weight)) === true
     ) {
         console.log('result: bad payload');
-        return res.status(400).send({message: 'bad payload'});
+        return res.status(400).send({ message: 'bad payload' });
     }
 
     // get data
@@ -118,7 +111,7 @@ routes.put('/beverages/:id', async (req, res) => {
         isNaN(Number(req.body.net_weight)) === true
     ) {
         console.log('result: bad payload');
-        return res.status(400).send({message: 'bad payload'});
+        return res.status(400).send({ message: 'bad payload' });
     }
 
     // get data
@@ -131,7 +124,7 @@ routes.put('/beverages/:id', async (req, res) => {
 
     // update document
     await Beverage.findByIdAndUpdate(
-        {_id: id},
+        { _id: id },
         {
             name: req.body.name,
             price,
@@ -147,7 +140,7 @@ routes.put('/beverages/:id', async (req, res) => {
         .catch((error) => {
             console.log(error);
             console.log('Could not find document');
-            return res.status(404).send({message: 'could not get documents'});
+            return res.status(404).send({ message: 'could not get documents' });
         });
 });
 
@@ -160,7 +153,7 @@ routes.delete('/beverages/:id', (req, res) => {
     const id = req.params.id;
 
     // get document with provided id
-    Beverage.deleteOne({_id: id})
+    Beverage.deleteOne({ _id: id })
         .then((result) => {
             console.log('result: ', result);
             return res.status(200).send(result);
@@ -169,7 +162,7 @@ routes.delete('/beverages/:id', (req, res) => {
             console.log('Could not find document');
             return res
                 .status(404)
-                .send({message: 'could not get db documents'});
+                .send({ message: 'could not get db documents' });
         });
 });
 
