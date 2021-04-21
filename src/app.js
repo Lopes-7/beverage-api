@@ -29,10 +29,17 @@ class AppController {
     }
 
     routes() {
+        // middleware to log requests
+        this.express.use(require('./middlewares/log'));
+
+        // beverages router
         this.express.use(require('./routes/beverage'));
-        console.log('Added beverage router');
+
+        // vendors router
         this.express.use(require('./routes/vendor'));
-        console.log('Added vendor router');
+
+        // errors router
+        this.express.use(require('./error/error'));
     }
 }
 
