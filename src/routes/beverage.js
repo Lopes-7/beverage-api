@@ -3,167 +3,187 @@
  */
 const routes = require('express').Router();
 const Beverage = require('../models/beverage');
-const getUrlParameters = require('../utils');
 
 /**
  * CODE
  */
 
 // get list of beverages
-routes.get('/beverages', (req, res) => {
-    // log request
-    console.log('received request: ', req.method, req.url);
-
-    // get url parameters
-    const params = getUrlParameters(req.url);
-
-    // list all documents in database
-    Beverage.find(params)
-        .then((data) => {
-            console.log('response: 200 Found documents: ', data.length);
-            return res.status(200).send(data);
-        })
-        .catch((error) => {
-            console.log('Could not find document', error);
-            return res
-                .status(404)
-                .send({ message: 'Could not get db documents' });
-        });
+routes.get('/beverages', async (req, res) => {
+    try {
+        let result = await Beverage.find();
+        res.status(200).json({ 'beverages': result });
+    }
+    catch (e) {
+        console.log('error on request: ', e.message);
+        res.status(500).json({ 'error': { 'status': 500, 'message': 'Internal Server Error' } });
+    }
 });
 
 // get beverage by id
-routes.get('/beverages/:id', (req, res) => {
-    // log request
-    console.log('received request: ', req.method, req.url);
+routes.get('/beverages/:id', async (req, res) => {
+    try {
+        // get parameter id
+        const id = req.params.id;
 
-    // get parameter id
-    const id = req.params.id;
-
-    // get document with provided id
-    Beverage.findOne({ _id: id })
-        .then((data) => {
-            if (data !== null) {
-                console.log('response: 200 Found document: ', data);
-                return res.status(200).send(data);
-            }
-            console.log('Could not find document');
-            return res.status(404).send({ message: 'could not get document' });
-        })
-        .catch(() => {
-            console.log('Could not find document');
-            return res.status(404).send({ message: 'could not get document' });
-        });
+        let result = await Beverage.findById(id);
+        res.status(200).json({ 'beverage': result });
+    }
+    catch (e) {
+        console.log('error on request: ', e.message);
+        res.status(400).json({ 'error': { 'status': 400, 'message': e.reason.message } });
+    }
 });
 
 // post beverage
-routes.post('/beverages', (req, res) => {
-    // log request
-    console.log('received request: ', req.method, req.url);
+routes.post('/beverages', async (req, res) => {
+    try {
+        // invalid body: throw error
+        if (!req.body) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Request body not found';
+            throw error;
+        }
 
-    // bad payload: throw error response
-    if (
-        !req.body ||
-        !req.body.price ||
-        !req.body.net_weight ||
-        !req.body.name ||
-        !req.body.vendor ||
-        isNaN(Number(req.body.price)) === true ||
-        isNaN(Number(req.body.net_weight)) === true
-    ) {
-        console.log('result: bad payload');
-        return res.status(400).send({ message: 'bad payload' });
-    }
+        // invalid price: throw error
+        if (!req.body.price || isNaN(Number(req.body.price))) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid price';
+            throw error;
+        }
 
-    // get data
-    const price = Number(req.body.price);
-    const net_weight = Number(req.body.net_weight);
-    const price_per_liter = price / (net_weight / 1000);
+        // invalid net weight: throw error
+        if (!req.body.net_weight || isNaN(Number(req.body.net_weight))) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid net weight';
+            throw error;
+        }
 
-    // instatiate new beverage
-    const beverage = new Beverage({
-        name: req.body.name,
-        price,
-        net_weight,
-        price_per_liter,
-        vendor: req.body.vendor,
-    });
+        // invalid name: throw error
+        if (!req.body.name) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid name';
+            throw error;
+        }
 
-    // save beverage to db
-    beverage.save();
+        // invalid vendor: throw error
+        if (!req.body.vendor) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid vendor';
+            throw error;
+        }
 
-    // return response created
-    return res.status(201).send(beverage);
-});
+        // get data
+        const price = Number(req.body.price);
+        const net_weight = Number(req.body.net_weight);
+        const price_per_liter = price / (net_weight / 1000);
 
-// put beverage by id
-routes.put('/beverages/:id', async (req, res) => {
-    // log request
-    console.log('received request: ', req.method, req.url);
-
-    // bad payload: throw error response
-    if (
-        !req.body ||
-        !req.body.price ||
-        !req.body.net_weight ||
-        !req.body.name ||
-        !req.body.vendor ||
-        isNaN(Number(req.body.price)) === true ||
-        isNaN(Number(req.body.net_weight)) === true
-    ) {
-        console.log('result: bad payload');
-        return res.status(400).send({ message: 'bad payload' });
-    }
-
-    // get data
-    const price = Number(req.body.price);
-    const net_weight = Number(req.body.net_weight);
-    const price_per_liter = price / (net_weight / 1000);
-
-    // get parameter id
-    const id = req.params.id;
-
-    // update document
-    await Beverage.findByIdAndUpdate(
-        { _id: id },
-        {
+        // instatiate new beverage
+        const beverage = new Beverage({
             name: req.body.name,
             price,
             net_weight,
             price_per_liter,
             vendor: req.body.vendor,
-        }
-    )
-        .then((result) => {
-            console.log('result: ', result);
-            return res.status(200).send(result);
-        })
-        .catch((error) => {
-            console.log(error);
-            console.log('Could not find document');
-            return res.status(404).send({ message: 'could not get documents' });
         });
+
+        // save beverage to db
+        let result = await beverage.save();
+
+        // return response created
+        console.log('beverage created: ', result);
+        res.status(201).json({ 'beverage': result });
+    }
+    catch (e) {
+        console.log('error on request: ', e.message);
+        res.status(400).json({ 'error': { 'status': e.status, 'message': e.message } });
+    }
 });
 
-// delete beverage by id
-routes.delete('/beverages/:id', (req, res) => {
-    // log request
-    console.log('received request: ', req.method, req.url);
 
-    // get parameter id
-    const id = req.params.id;
+// put beverage by id
+routes.put('/beverages/:id', async (req, res) => {
+    try {
+        // invalid body: throw error
+        if (!req.body) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Request body not found';
+            throw error;
+        }
 
-    // get document with provided id
-    Beverage.deleteOne({ _id: id })
-        .then((result) => {
-            console.log('result: ', result);
-            return res.status(200).send(result);
-        })
-        .catch(() => {
-            console.log('Could not find document');
-            return res
-                .status(404)
-                .send({ message: 'could not get db documents' });
-        });
+        // invalid price: throw error
+        if (!req.body.price || isNaN(Number(req.body.price))) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid price';
+            throw error;
+        }
+
+        // invalid net weight: throw error
+        if (!req.body.net_weight || isNaN(Number(req.body.net_weight))) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid net weight';
+            throw error;
+        }
+
+        // invalid name: throw error
+        if (!req.body.name) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid name';
+            throw error;
+        }
+
+        // invalid vendor: throw error
+        if (!req.body.vendor) {
+            let error = new Error();
+            error.status = 400;
+            error.message = 'Invalid vendor';
+            throw error;
+        }
+
+        // get data
+        const price = Number(req.body.price);
+        const net_weight = Number(req.body.net_weight);
+        const price_per_liter = price / (net_weight / 1000);
+
+        // get parameter id
+        const id = req.params.id;
+
+        // update document
+        let beverage = await Beverage.findById(id);
+
+        // beverage not found: throw error
+        if (!beverage) {
+            let error = new Error;
+            error.status = 404;
+            error.message = 'Beverage not found';
+            throw error;
+        }
+
+        beverage.name = req.body.name;
+        beverage.vendor = req.body.vendor;
+        beverage.price = req.body.price;
+        beverage.net_weight = req.body.net_weight;
+        beverage.price_per_liter = price_per_liter;
+
+        let result = await beverage.save();
+
+        // return response updated
+        console.log('beverage updated: ', result);
+        res.status(201).json({ 'beverage': result });
+    }
+    catch (e) {
+        console.log('error on request: ', e.message);
+        res.status(e.status).json({ 'error': { 'status': e.status, 'message': e.message } });
+    }
 });
 
 /**
